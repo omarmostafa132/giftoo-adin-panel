@@ -533,7 +533,7 @@
                     </div>
                     <div class="form-group">
                         <label for="announcementText">نص الإعلان</label>
-                        <textarea id="announcementText" placeholder="أدخل نص الإعلان"></textarea>
+                            <textarea id="announcementText" placeholder="أدخل نص الإعلان"></textarea>
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">حفظ الإعدادات</button>
@@ -925,10 +925,18 @@
                 }
             });
 
-            database.ref('herobanner').on('value', (snapshot) => {
+            // تغيير المرجع من 'herobanner' إلى 'heroBanner'
+            database.ref('heroBanner').on('value', (snapshot) => {
                 const heroBannerData = snapshot.val();
                 if (heroBannerData) {
-                    heroBanner = heroBannerData;
+                    // Handle both old string format and new object format
+                    if (typeof heroBannerData === 'string') {
+                        heroBanner = { imageUrl: heroBannerData };
+                        // Update the database to the new format
+                        database.ref('heroBanner').set(heroBanner);
+                    } else {
+                        heroBanner = heroBannerData;
+                    }
                     renderHeroBanner();
                 }
             });
@@ -1383,9 +1391,12 @@
         }
 
         function saveHeroBanner(url) {
-            database.ref('herobanner').set(url)
+            const heroBannerData = { imageUrl: url };
+            // تغيير المرجع من 'herobanner' إلى 'heroBanner'
+            database.ref('heroBanner').set(heroBannerData)
                 .then(() => {
                     alert('تم حفظ اللافتة الرئيسية بنجاح!');
+                    heroBanner = heroBannerData;
                     renderHeroBanner();
                 })
                 .catch(error => alert('خطأ في حفظ اللافتة الرئيسية: ' + error.message));
@@ -1393,9 +1404,10 @@
 
         function renderHeroBanner() {
             if (heroBanner) {
+                const url = heroBanner.imageUrl;
                 heroImagePreview.innerHTML = `
                     <div class="image-preview-item" style="width: 100%; max-width: 500px;">
-                        <img src="${heroBanner}" alt="Hero Banner" style="width: 100%; height: auto;">
+                        <img src="${url}" alt="Hero Banner" style="width: 100%; height: auto;">
                     </div>
                 `;
             } else {
